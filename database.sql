@@ -1,3 +1,4 @@
+-- Active: 1731535021677@@127.0.0.1@5432@postgres
 CREATE TABLE genre (
     genre_id int NOT NULL PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     genre_name VARCHAR(255) NOT NULL
