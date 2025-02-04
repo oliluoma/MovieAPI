@@ -1,13 +1,13 @@
 import express, { json } from 'express';
-import pg from 'pg';
 import { pgPool } from './pg_connections.js';
 
-var app = express();
-const {Client} = pg;
+const app = express();
+app.use(express.urlencoded({extended: true}))
+app.use(express.json());
 
 
 app.listen(3001, () => {
-    console.log('the server is running..');
+    console.log('server is running..');
 
 });
 
@@ -37,8 +37,24 @@ app.get('/customer', async (req, res) => {
 
 app.get('/movie',  async (req, res) => {
 
+    //GET MOVIE BY KEYWORD
+    let keyword = req.query.keyword;
+
+
     try {
-        const result = await pgPool.query('SELECT * FROM movie')
+        let result;
+
+        if(!keyword){
+            result = await pgPool.query('SELECT * FROM movie')
+        }else{
+            keyword = keyword.toLowerCase();
+            keyword = '%'+keyword+'%';
+
+            result = await pgPool.query(
+                'SELECT * FROM movie WHERE LOWER(title) LIKE $1', [keyword])
+        }
+
+
         res.json(result.rows)
     } catch (error) {
         res.status(400).json({error: error.message})
@@ -89,3 +105,22 @@ app.get('/favorite', async (req, res) => {
 
 });
 
+//ADDING A MOVIE
+
+app.post('/addmovie', async (req, res) => {
+
+    const title = req.body.title;
+    const year = req.body.year;
+    const genre = req.body.genre;
+
+    try {
+        await pgPool.query(
+            'INSERT INTO movie VALUES ($1, $2, $3)', [title, year, genre])
+        res.end();
+    } catch (error) {
+        res.status(400).json({error: error.message})
+        
+    }
+
+
+})
